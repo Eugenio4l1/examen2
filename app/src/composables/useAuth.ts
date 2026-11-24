@@ -26,7 +26,9 @@ export const obtenerToken = () => token.value;
 
 /** TODO [M2] Borrar token y usuario de la memoria (refs) y del almacenamiento cifrado. */
 export async function olvidarSesion() {
-  // TODO [M2]
+  token.value = null;
+  usuario.value = null;
+  await Promise.allSettled([SecureStorage.remove(CLAVE_TOKEN), SecureStorage.remove(CLAVE_USUARIO)]);
 }
 
 export function useAuth() {
@@ -41,9 +43,19 @@ export function useAuth() {
    *  No atrape el error: LoginPage.vue ya muestra los 422.
    */
   async function login(email: string, password: string) {
-    void [email, password, api, Device, SecureStorage, CLAVE_TOKEN, CLAVE_USUARIO];
-    throw new Error('TODO [M2] login sin implementar');
-  }
+  const info = await Device.getInfo();
+  const device_name = `${info.platform} ${info.model}`.slice(0, 60);
+
+  const respuesta = await api<{ token: string; usuario: Usuario }>('/login', {
+    method: 'POST',
+    body: { email, password, device_name },
+  });
+
+  await SecureStorage.set(CLAVE_TOKEN, respuesta.token);
+  await SecureStorage.set(CLAVE_USUARIO, JSON.stringify(respuesta.usuario));
+  token.value = respuesta.token;
+  usuario.value = respuesta.usuario;
+}
 
   /**
    * TODO [M2] cargarToken()
@@ -51,8 +63,19 @@ export function useAuth() {
    *  Debe ejecutarse una sola vez (use la bandera tokenCargado).
    */
   async function cargarToken() {
-    void tokenCargado;
+  if (tokenCargado) return;
+  tokenCargado = true;
+  try {
+    const t = await SecureStorage.get(CLAVE_TOKEN);
+    const u = await SecureStorage.get(CLAVE_USUARIO);
+    if (typeof t === 'string' && typeof u === 'string') {
+      token.value = t;
+      usuario.value = JSON.parse(u);
+    }
+  } catch {
+    // sin sesión guardada o almacenamiento no disponible
   }
+}
 
   /**
    * TODO [M2] cerrarSesion()
@@ -60,8 +83,14 @@ export function useAuth() {
    *  aunque la API falle (sin red o token vencido).
    */
   async function cerrarSesion() {
-    // TODO [M2]
+  try {
+    await api('/logout', { method: 'POST' });
+  } catch {
+    // sin red o token vencido: igual se cierra la sesión local
+  } finally {
+    await olvidarSesion();
   }
+}
 
   return { usuario, estaAutenticado, login, cargarToken, cerrarSesion };
 }
