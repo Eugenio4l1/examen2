@@ -1,7 +1,10 @@
-import { ref } from 'vue';
+import { onUnmounted, ref } from 'vue';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Network } from '@capacitor/network';
 
 /**
- * TODO [M7] Capacidades nativas (6 pts en total: este archivo, PerfilPage.vue y AndroidManifest.xml).
+ * Capacidades nativas: estado de red y vibración.
  *
  * useConexion() devuelve { conectado, tipo }:
  *   - Valor inicial con Network.getStatus()                       (@capacitor/network)
@@ -12,15 +15,44 @@ import { ref } from 'vue';
 export function useConexion() {
   const conectado = ref(true);
   const tipo = ref('unknown');
-  // TODO [M7]
+
+  let desmontado = false;
+  let quitarOyente: (() => Promise<void>) | undefined;
+
+  void Network.getStatus()
+    .then((estado) => {
+      if (desmontado) return;
+      conectado.value = estado.connected;
+      tipo.value = estado.connectionType;
+    })
+    .catch(() => undefined);
+
+  void Network.addListener('networkStatusChange', (estado) => {
+    conectado.value = estado.connected;
+    tipo.value = estado.connectionType;
+  }).then((oyente) => {
+    if (desmontado) return oyente.remove();
+    quitarOyente = () => oyente.remove();
+  }).catch(() => undefined);
+
+  onUnmounted(() => {
+    desmontado = true;
+    void quitarOyente?.().catch(() => undefined);
+  });
+
   return { conectado, tipo };
 }
 
 /**
- * TODO [M7] vibrar(): vibración breve de confirmación con Haptics.impact({ style: ImpactStyle.Light })
+ * vibrar(): vibración breve de confirmación con Haptics.impact({ style: ImpactStyle.Light })
  *   (@capacitor/haptics). En el navegador NO debe hacer nada: use Capacitor.isNativePlatform().
  *   Se llama después de guardar y de eliminar con éxito.
  */
 export async function vibrar() {
-  // TODO [M7]
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await Haptics.impact({ style: ImpactStyle.Light });
+  } catch {
+    // La vibración es una confirmación opcional y no debe interrumpir el flujo.
+  }
 }
