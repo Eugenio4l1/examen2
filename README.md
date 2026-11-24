@@ -61,8 +61,8 @@ en la pestaña **Perfil** (debe verse *Plataforma: android*), y complete:
 - appId: `cr.ac.ucr.if0009.c4k218`
 - appName: `Préstamos Soto`
 - Versiones de Node / Ionic CLI / Capacitor: Node `v24.20.0`, Ionic CLI `7.2.1`, Capacitor `8.6.2`.
-- ¿Se generó el APK de depuración? (sí/no): No; pendiente de compilar y probar localmente.
-- Captura del emulador: `app/docs/evidencia-android.png` (pendiente de tomar durante la prueba local).
+- ¿Se generó el APK de depuración? (sí/no): Sí; Android Studio compiló e instaló la app en el emulador.
+- Captura del emulador: `app/docs/evidencia-android.png`.
 
 ## Reglas
 

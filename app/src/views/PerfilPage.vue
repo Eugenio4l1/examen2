@@ -16,13 +16,13 @@
 
         <ion-list-header>Dispositivo</ion-list-header>
         <ion-item>
-          <ion-label>Plataforma<ion-note>{{ plataforma }}</ion-note></ion-label>
+          <ion-label>Plataforma: <ion-note>{{ plataforma }}</ion-note></ion-label>
         </ion-item>
         <ion-item>
-          <ion-label>Modelo<ion-note>{{ dispositivo?.model ?? 'No disponible' }}</ion-note></ion-label>
+          <ion-label>Modelo: <ion-note>{{ dispositivo?.model ?? 'No disponible' }}</ion-note></ion-label>
         </ion-item>
         <ion-item>
-          <ion-label>Sistema<ion-note>{{ sistema }}</ion-note></ion-label>
+          <ion-label>Sistema: <ion-note>{{ sistema }}</ion-note></ion-label>
         </ion-item>
         <ion-item>
           <ion-label>Conexión</ion-label>
